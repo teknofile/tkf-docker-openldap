@@ -15,3 +15,5 @@ RUN apk --no-cache add \
 COPY root/ /
 
 EXPOSE 389 636
+
+VOLUME "/config"

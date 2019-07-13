@@ -1,5 +1,25 @@
 #!/usr/bin/with-contenv bash
+#
 
-mkdir -p /run/openldap
+LDAP_ROOT_PW=""
+SLAPD_CONF="/etc/openldap/slapd.conf"
 
+# This is a hack and will overwrite values, when we move to running out of /config
+# i think it will all be fixed
+cp -a /defaults/slapd.conf ${SLAPD_CONF}
 
+mkdir -p \
+  /run/openldap \
+  /var/lib/openldap/openldap-data \
+  /config 
+
+if [ ! -f /config/ldap_root_pw ]; then
+  GENERATED_PW="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32| head -n 1)"
+  echo ${GENERATED_PW} > /config/ldap_root_pw
+fi
+
+LDAP_ROOT_PW="$(/usr/sbin/slappasswd -s $(cat /config/ldap_root_pw))"
+
+sed -i "s~%TKF_ROOTPW%~${LDAP_ROOT_PW}~g" ${SLAPD_CONF}
+sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" ${SLAPD_CONF}
+sed -i "s~%TKF_ACCESS_CONTROL%~${ACCESS_CONTROL}~g" ${SLAPD_CONF}
