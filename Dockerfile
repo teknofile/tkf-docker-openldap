@@ -9,6 +9,7 @@ ENV ACCESS_CONTROL "access to * by * read"
 
 RUN apk --no-cache add \
   openldap \
+  openldap-clients \
   openldap-overlay-all \
   openldap-backend-all 
 

@@ -6,5 +6,5 @@ docker create \
   -e PGID="$(id -g)" \
   -p 389:389 \
   -p 636:636 \
-  -v test-work:/config \
+  -v /home/jrichardson/Documents/code/teknofile/tkf-docker-openldap/test-work:/config \
   teknofile/tkf-docker-openldap:devel 

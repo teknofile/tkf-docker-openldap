@@ -1,0 +1,10 @@
+dn: %TKF_ORG_DN%
+objectClass: dcObject
+objectClass: organization
+o: %LDAP_ORG_NAME%
+dc: %LDAP_DOMAIN%
+
+dn: cn=admin,%TKF_ORG_DN%
+objectClass: organizationalRole
+cn: admin
+
