@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+docker build -t teknofile/tkf-docker-openldap:devel .
+
 docker create \
   --name tkf-openldap \
   -e PUID="$(id -u)" \

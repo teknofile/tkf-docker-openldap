@@ -1,0 +1,3 @@
+ldapsearch -D "cn=admin,dc=copperdale,dc=teknofile,dc=net" -w <PW> -b "dc=copperdale,dc=teknofile,dc=net" -p 389 -h ldap://127.0.0.1 -s sub "(objectClass=*)"
+
+

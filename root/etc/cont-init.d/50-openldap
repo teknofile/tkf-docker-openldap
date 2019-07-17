@@ -31,8 +31,8 @@ sed -i "s~%TKF_ROOTPW%~${LDAP_ROOT_PW}~g" ${SLAPD_CONF}
 sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" ${SLAPD_CONF}
 sed -i "s~%TKF_ACCESS_CONTROL%~${ACCESS_CONTROL}~g" ${SLAPD_CONF}
 
-
 if [ ! -d /config/openldap-conf/cn=config ]; then
+  LDAP_PW=$(cat /config/openldap-conf/ldap_root_pw)
 
   #initialize the DB 
   /usr/sbin/slapadd \
@@ -45,7 +45,18 @@ if [ ! -d /config/openldap-conf/cn=config ]; then
   sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" /config/openldap-conf/ldif/org.ldif
   sed -i "s~%TKF_ORG_NAME%~${ORG_NAME}~g" /config/openldap-conf/ldif/org.ldif
   # TODO expose domain name as a env var or compute it
-  sed -i "s~%LDAP_DOMAIN%~teknofile~g" /config/openldap-conf/ldif/org.ldif
+  sed -i "s~%LDAP_DOMAIN%~copperdale~g" /config/openldap-conf/ldif/org.ldif
 
-  /usr/bin/ldapadd -x -D "cn=admin,${ORG_DN}" -W -f /config/openldap-conf/ldif/org.ldif
+  /usr/sbin/slapd -F /config/openldap-conf
+
+  /usr/bin/ldapadd \
+    -f /config/openldap-conf/ldif/org.ldif \
+    -x \
+    -D cn=admin,dc=copperdale,dc=teknofile,dc=net \
+    -w ${LDAP_PW}
+
+  kill `pidof slapd`
 fi
+
+chown -R abc:abc /config
+chown -R abc:abc /run/openldap
