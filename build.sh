@@ -4,6 +4,7 @@ docker build -t teknofile/tkf-docker-openldap:devel .
 
 docker create \
   --name tkf-openldap \
+  --hostname ldap1.copperdale.teknofile.net \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -p 389:389 \

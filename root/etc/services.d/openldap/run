@@ -1,4 +1,4 @@
 #!/usr/bin/with-contenv bash
 
 #exec s6-setuidgid root /usr/sbin/slapd -d trace -F /config/openldap-conf/
-exec s6-setuidgid root /usr/sbin/slapd -u abc -g abc -d trace -F /config/openldap-conf/
+exec s6-setuidgid root /usr/sbin/slapd -u abc -g abc -d trace -F /config/openldap/ -h "ldap:/// ldaps:///"

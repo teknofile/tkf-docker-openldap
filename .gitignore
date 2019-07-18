@@ -1,3 +1,4 @@
 *.swp
 test-work/
 build.sh
+test/

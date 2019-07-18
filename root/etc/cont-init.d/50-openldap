@@ -3,58 +3,75 @@
 #
 set +x
 
+CONF_DIR="/config/openldap"
+DATA_DIR="/config/data"
+
 mkdir -p \
   /run/openldap \
   /config \
-  /config/openldap-data \
-  /config/openldap-conf \
-  /config/openldap-conf/ldif 
+  ${DATA_DIR} \
+  ${CONF_DIR} \
+  ${CONF_DIR}/ldif 
 
-chown abc:abc -R /config
 
-LDAP_ROOT_PW=""
-SLAPD_CONF="/config/openldap-conf/slapd.ldif"
+# Let's see if ${CONF_DIR}/cn=config exists, if itdoes,we'll use it
+# if it doesn't let's initialize a new ldap directory
+if [ ! -d ${CONF_DIR}/cn=config ]; then
+  # The slapd.ldif file is what we use to configure a
+  # base ldap database. This is similar to the old way
+  # of configuring slapd via the slapd.conf file
+  # but these days it's all ldif based and stored in
+  # ldap at {0}
+  SLAPD_CONF="${CONF_DIR}/slapd.ldif"
+  cp -a /defaults/slapd.ldif ${SLAPD_CONF}
+  cp -a /defaults/ldif/org.ldif ${CONF_DIR}/ldif/org.ldif
 
-# This is a hack and will overwrite values, when we move to running out of /config
-# i think it will all be fixed
-cp -a /defaults/slapd.ldif ${SLAPD_CONF}
-cp -a /defaults/ldif/org.ldif /config/openldap-conf/ldif/org.ldif
+  # We are going to generate a random password
+  # And store it on the fs
+  if [ ! -f ${CONF_DIR}/ldap_root_pw ]; then
+    GENERATED_PW="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32| head -n 1)"
+    echo ${GENERATED_PW} > ${CONF_DIR}/ldap_root_pw
+  fi
 
-if [ ! -f /config/openldap-conf/ldap_root_pw ]; then
-  GENERATED_PW="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32| head -n 1)"
-  echo ${GENERATED_PW} > /config/openldap-conf/ldap_root_pw
-fi
+  # LDAP_PW is the un-encrypted LDAP admin pw
+  # LDAP_ROOT_PW is the encrypted SSHA pw
+  LDAP_PW=$(cat ${CONF_DIR}/ldap_root_pw)
+  LDAP_ROOT_PW="$(/usr/sbin/slappasswd -s $(cat ${CONF_DIR}/ldap_root_pw))"
 
-LDAP_ROOT_PW="$(/usr/sbin/slappasswd -s $(cat /config/openldap-conf/ldap_root_pw))"
-
-sed -i "s~%TKF_ROOTPW%~${LDAP_ROOT_PW}~g" ${SLAPD_CONF}
-sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" ${SLAPD_CONF}
-sed -i "s~%TKF_ACCESS_CONTROL%~${ACCESS_CONTROL}~g" ${SLAPD_CONF}
-
-if [ ! -d /config/openldap-conf/cn=config ]; then
-  LDAP_PW=$(cat /config/openldap-conf/ldap_root_pw)
+  # Now let's go ahead and search/replace the default slapd.ldif
+  # file with parameters from the contianers enviornment
+  sed -i "s~%TKF_ROOTPW%~${LDAP_ROOT_PW}~g" ${SLAPD_CONF}
+  sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" ${SLAPD_CONF}
+  sed -i "s~%TKF_ACCESS_CONTROL%~${ACCESS_CONTROL}~g" ${SLAPD_CONF}
+  sed -i "s~%TKF_DB_DIR%~${DATA_DIR}~g" ${SLAPD_CONF}
 
   #initialize the DB 
   /usr/sbin/slapadd \
     -d trace \
     -n 0 \
-    -F /config/openldap-conf \
-    -l /config/openldap-conf/slapd.ldif \
-    > /config/slapd.log 2>&1
+    -F ${CONF_DIR} \
+    -l ${CONF_DIR}/slapd.ldif \
+    > ${CONF_DIR}/slapd.log 2>&1
 
-  sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" /config/openldap-conf/ldif/org.ldif
-  sed -i "s~%TKF_ORG_NAME%~${ORG_NAME}~g" /config/openldap-conf/ldif/org.ldif
+  # Now we need to setup the base organizationalUnit for the ldap tree
+  sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" ${CONF_DIR}/ldif/org.ldif
+  sed -i "s~%TKF_ORG_NAME%~${ORG_NAME}~g" ${CONF_DIR}/ldif/org.ldif
   # TODO expose domain name as a env var or compute it
-  sed -i "s~%LDAP_DOMAIN%~copperdale~g" /config/openldap-conf/ldif/org.ldif
 
-  /usr/sbin/slapd -F /config/openldap-conf
+  LDAP_DOMAIN=`echo ${ORG_DN} | awk -F, '{print $1}' | awk -F= '{print $2}'`
+  sed -i "s~%LDAP_DOMAIN%~${LDAP_DOMAIN}~g" ${CONF_DIR}/ldif/org.ldif
+
+
+  # we have to (temporarily start up the server to do the base add)
+  /usr/sbin/slapd -F ${CONF_DIR}
 
   /usr/bin/ldapadd \
-    -f /config/openldap-conf/ldif/org.ldif \
+    -f ${CONF_DIR}/ldif/org.ldif \
     -x \
-    -D cn=admin,dc=copperdale,dc=teknofile,dc=net \
+    -D cn=admin,${ORG_DN} \
     -w ${LDAP_PW}
 
+  # Now we kill it off, because we'll start it via s6 later
   kill `pidof slapd`
 fi
 
