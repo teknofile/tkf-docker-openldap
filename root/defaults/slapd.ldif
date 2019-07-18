@@ -22,9 +22,10 @@ olcArgsFile: /run/openldap/slapd.args
 #	Require 112-bit (3DES or better) encryption for updates
 #	Require 64-bit encryption for simple bind
 #olcSecurity: ssf=1 update_ssf=112 simple_bind=64
-olcTLSCACertificateFile: /config/certs/fullchain.pem
-olcTLSCertificateFile: /config/certs/cert.pem
-olcTLSCertificateKeyFile: /config/certs/privkey.pem
+olcTLSCACertificateFile: %TKF_CA_CERT%
+olcTLSCertificateFile: %TKF_CERT%
+olcTLSCertificateKeyFile: %TKF_CERT_KEY%
+olcLogLevel: stats
 
 #
 # Load dynamic backend modules:

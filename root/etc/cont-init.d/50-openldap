@@ -11,6 +11,7 @@ mkdir -p \
   /config \
   ${DATA_DIR} \
   ${CONF_DIR} \
+  ${CONF_DIR}/certs \
   ${CONF_DIR}/ldif 
 
 
@@ -45,6 +46,9 @@ if [ ! -d ${CONF_DIR}/cn=config ]; then
   sed -i "s~%TKF_ACCESS_CONTROL%~${ACCESS_CONTROL}~g" ${SLAPD_CONF}
   sed -i "s~%TKF_DB_DIR%~${DATA_DIR}~g" ${SLAPD_CONF}
 
+  sed -i "s~%TKF_CA_CERT%~/config/certs/${LDAP_CA_CERT}~g" ${SLAPD_CONF}
+  sed -i "s~%TKF_CERT%~/config/certs/${LDAP_CERT}~g" ${SLAPD_CONF}
+  sed -i "s~%TKF_CERT_KEY%~/config/certs/${LDAP_CERT_KEY}~g" ${SLAPD_CONF}
   #initialize the DB 
   /usr/sbin/slapadd \
     -d trace \
