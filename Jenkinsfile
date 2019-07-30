@@ -163,7 +163,6 @@ pipeline {
         }
       }
     }
-/*
     // Run ShellCheck
     stage('ShellCheck') {
       when {
@@ -193,7 +192,6 @@ pipeline {
         }
       }
     }
-*/
     // Use helper containers to render templated files
     stage('Update-Templates') {
       when {
