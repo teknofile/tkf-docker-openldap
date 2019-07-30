@@ -5,7 +5,7 @@ pipeline {
   // Configuration for the variables used for this specific repo
   environment {
     GITHUB_TOKEN=credentials('tkf-github-auth-token')
-    BUILD_VERSION_ARG = 'TKF_DOCKER_POSTFIX_VERSION'
+    BUILD_VERSION_ARG = 'TKF_DOCKER_OPENLDAP_VERSION'
     LS_USER = 'teknofile'
     LS_REPO = 'tkf-docker-openldap'
     CONTAINER_NAME = 'tkf-docker-openldap'
