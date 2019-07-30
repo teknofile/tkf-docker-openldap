@@ -169,14 +169,13 @@ pipeline {
         environment name: 'CI', value: 'true'
       }
       steps {
-        withCredentials([
-          string(credentialsId: 'spaces-key', variable: 'DO_KEY'),
-          string(credentialsId: 'spaces-secret', variable: 'DO_SECRET')
-        ]) {
+        {
           script{
             env.SHELLCHECK_URL = 'https://lsio-ci.ams3.digitaloceanspaces.com/' + env.IMAGE + '/' + env.META_TAG + '/shellcheck-result.xml'
           }
           sh '''curl -sL https://raw.githubusercontent.com/linuxserver/docker-shellcheck/master/checkrun.sh | /bin/bash'''
+    /*
+      This looks like it is just uploading the shellcheck results to a digitalocean style S3 bucket. 
           sh '''#! /bin/bash
                 set -e
                 docker pull lsiodev/spaces-file-upload:latest
@@ -189,6 +188,7 @@ pipeline {
                 -e ACCESS_KEY=\"${DO_KEY}\" \
                 -t lsiodev/spaces-file-upload:latest \
                 python /upload.py'''
+    */
         }
       }
     }
