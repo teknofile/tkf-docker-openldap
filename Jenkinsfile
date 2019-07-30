@@ -45,34 +45,8 @@ pipeline {
         }
       }
     }
-    /* ########################
-       External Release Tagging
-       ######################## */
-    // If this is an os release set release type to none to indicate no external release
-    stage("Set ENV os"){
-      steps{
-        script{
-          env.EXT_RELEASE = env.PACKAGE_TAG
-          env.RELEASE_LINK = 'none'
-        }
-      }
-    }
-    // Sanitize the release tag and strip illegal docker or github characters
-    stage("Sanitize tag"){
-      steps{
-        script{
-          env.EXT_RELEASE_CLEAN = sh(
-            script: '''echo ${EXT_RELEASE} | sed 's/[~,%@+;:/]//g' ''',
-            returnStdout: true).trim()
-        }
-      }
-    }
     // If this is a master build use live docker endpoints
     stage("Set ENV live build"){
-      when {
-        branch "master"
-        environment name: 'CHANGE_ID', value: ''
-      }
       steps {
         script{
           env.IMAGE = env.DOCKERHUB_IMAGE
@@ -225,12 +199,12 @@ pipeline {
       }
       steps {
         sh "docker build --no-cache --pull -t ${IMAGE} \
-        --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" --build-arg BUILD_DATE=${GITHUB_DATE} ."
+        --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" ."
       }
       /*
       steps {
         sh "docker build --no-cache --pull -t ${IMAGE}:${META_TAG} \
-        --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" --build-arg BUILD_DATE=${GITHUB_DATE} ."
+        --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" ."
       }
       */
     }
@@ -244,7 +218,7 @@ pipeline {
         stage('Build X86') {
           steps {
             sh "docker build --no-cache --pull -t ${IMAGE}:amd64-${META_TAG} \
-            --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" --build-arg BUILD_DATE=${GITHUB_DATE} ."
+            --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" ."
           }
         }
         stage('Build ARMHF') {
@@ -265,7 +239,7 @@ pipeline {
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
               sh "docker build --no-cache --pull -f Dockerfile.armhf -t ${IMAGE}:arm32v7-${META_TAG} \
-                           --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" --build-arg BUILD_DATE=${GITHUB_DATE} ."
+                           --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" ."
               sh "docker tag ${IMAGE}:arm32v7-${META_TAG} lsiodev/buildcache:arm32v7-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh "docker push lsiodev/buildcache:arm32v7-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh '''docker rmi \
@@ -292,7 +266,7 @@ pipeline {
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
               sh "docker build --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${META_TAG} \
-                           --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" --build-arg BUILD_DATE=${GITHUB_DATE} ."
+                           --build-arg ${BUILD_VERSION_ARG}=${EXT_RELEASE} --build-arg VERSION=\"${META_TAG}\" ."
               sh "docker tag ${IMAGE}:arm64v8-${META_TAG} lsiodev/buildcache:arm64v8-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh "docker push lsiodev/buildcache:arm64v8-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh '''docker rmi \
@@ -526,7 +500,7 @@ pipeline {
              "object": "'${COMMIT_SHA}'",\
              "message": "Tagging Release '${EXT_RELEASE_CLEAN}'-ls'${LS_TAG_NUMBER}' to master",\
              "type": "commit",\
-             "tagger": {"name": "LinuxServer Jenkins","email": "jenkins@linuxserver.io","date": "'${GITHUB_DATE}'"}}' '''
+             "tagger": {"name": "LinuxServer Jenkins","email": "jenkins@linuxserver.io"}}' '''
         echo "Pushing New release for Tag"
         sh '''#! /bin/bash
               echo "Updating base packages to ${PACKAGE_TAG}" > releasebody.json
