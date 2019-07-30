@@ -6,8 +6,10 @@ pipeline {
   stages {
     // Run SHellCheck
     stage('ShellCheck') {
-      sh '''docker pull lsiodev/shellcheck'''
-      sh '''docker run --rm=true -t -v ${WORKSPACE}/root:/root lsiodev/shellcheck find root/ -type f -exec shellcheck --exclude=SC1008 --format=checkstyle --shell=bash {} +'''
+      steps {
+        sh '''docker pull lsiodev/shellcheck'''
+        sh '''docker run --rm=true -t -v ${WORKSPACE}/root:/root lsiodev/shellcheck find root/ -type f -exec shellcheck --exclude=SC1008 --format=checkstyle --shell=bash {} +'''
+      }
     }
   }
 }
