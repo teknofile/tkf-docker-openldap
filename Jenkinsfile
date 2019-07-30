@@ -7,11 +7,11 @@ pipeline {
     GITHUB_TOKEN=credentials('tkf-github-auth-token')
     BUILD_VERSION_ARG = 'TKF_DOCKER_POSTFIX_VERSION'
     LS_USER = 'teknofile'
-    LS_REPO = 'tkf-docker-postfix'
-    CONTAINER_NAME = 'tkf-docker-postfix'
-    DOCKERHUB_IMAGE = 'teknofile/tkf-docker-postfix'
-    DEV_DOCKERHUB_IMAGE = 'teknofile/tkf-docker-postfix'
-    PR_DOCKERHUB_IMAGE = 'teknofile/tkf-docker-postfix:pr'
+    LS_REPO = 'tkf-docker-openldap'
+    CONTAINER_NAME = 'tkf-docker-openldap'
+    DOCKERHUB_IMAGE = 'teknofile/tkf-docker-openldap'
+    DEV_DOCKERHUB_IMAGE = 'teknofile/tkf-docker-openldap'
+    PR_DOCKERHUB_IMAGE = 'teknofile/tkf-docker-openldap:pr'
     DIST_IMAGE = 'alpine'
 
     // During testing, I want to set multiarch to false so we only try to build the x86 version
