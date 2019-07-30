@@ -169,7 +169,6 @@ pipeline {
         environment name: 'CI', value: 'true'
       }
       steps {
-        {
           script{
             env.SHELLCHECK_URL = 'https://lsio-ci.ams3.digitaloceanspaces.com/' + env.IMAGE + '/' + env.META_TAG + '/shellcheck-result.xml'
           }
@@ -189,7 +188,6 @@ pipeline {
                 -t lsiodev/spaces-file-upload:latest \
                 python /upload.py'''
     */
-        }
       }
     }
     // Use helper containers to render templated files
