@@ -27,46 +27,6 @@ pipeline {
   }
   stages {
     // Setup all the basic environment variables needed for the build
-    stage("Set ENV Variables base"){
-      steps{
-        script{
-          env.EXIT_STATUS = ''
-          env.LS_RELEASE = sh(
-            script: '''docker run --rm alexeiled/skopeo sh -c 'skopeo inspect docker://docker.io/'${DOCKERHUB_IMAGE}':latest 2>/dev/null' | jq -r '.Labels.build_version' | awk '{print $3}' | grep '\\-ls' || : ''',
-            returnStdout: true).trim()
-          env.LS_RELEASE_NOTES = sh(
-            script: '''cat readme-vars.yml | awk -F \\" '/date: "[0-9][0-9].[0-9][0-9].[0-9][0-9]:/ {print $4;exit;}' | sed -E ':a;N;$!ba;s/\\r{0,1}\\n/\\\\n/g' ''',
-            returnStdout: true).trim()
-          env.GITHUB_DATE = sh(
-            script: '''date '+%Y-%m-%dT%H:%M:%S%:z' ''',
-            returnStdout: true).trim()
-          env.COMMIT_SHA = sh(
-            script: '''git rev-parse HEAD''',
-            returnStdout: true).trim()
-          env.CODE_URL = 'https://github.com/' + env.LS_USER + '/' + env.LS_REPO + '/commit/' + env.GIT_COMMIT
-          env.DOCKERHUB_LINK = 'https://hub.docker.com/r/' + env.DOCKERHUB_IMAGE + '/tags/'
-          env.PULL_REQUEST = env.CHANGE_ID
-        }
-        script{
-          env.LS_RELEASE_NUMBER = sh(
-            script: '''echo ${LS_RELEASE} |sed 's/^.*-ls//g' ''',
-            returnStdout: true).trim()
-        }
-        script{
-          env.LS_TAG_NUMBER = sh(
-            script: '''#! /bin/bash
-                       tagsha=$(git rev-list -n 1 ${LS_RELEASE} 2>/dev/null)
-                       if [ "${tagsha}" == "${COMMIT_SHA}" ]; then
-                         echo ${LS_RELEASE_NUMBER}
-                       elif [ -z "${GIT_COMMIT}" ]; then
-                         echo ${LS_RELEASE_NUMBER}
-                       else
-                         echo $((${LS_RELEASE_NUMBER} + 1))
-                       fi''',
-            returnStdout: true).trim()
-        }
-      }
-    }
     /* #######################
        Package Version Tagging
        ####################### */
