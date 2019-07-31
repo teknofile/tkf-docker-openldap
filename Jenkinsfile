@@ -26,7 +26,7 @@ pipeline {
         withCredentials([
           [
             $class: 'UsernamePasswordMultiBinding',
-            credentialsId; 'teknofile-docker-creds',
+            credentialsId: 'teknofile-docker-creds',
             usernameVariable: 'DOCKERUSER',
             passwordVariable: 'DOCKERPASS'
           ]
