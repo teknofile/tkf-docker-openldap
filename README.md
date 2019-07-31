@@ -68,7 +68,7 @@ We (will) use [SemVer](http://semver.org/) for versioning. For the versions avai
 
 * **teknofile** - *Initial work* - [teknofile](https://teknofile.org/)
 
-See also the list of [contributors](https://github.com/teknofile/tkf-docker-postfix/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/teknofile/tkf-docker-openldap/contributors) who participated in this project.
 
 ## License
 
