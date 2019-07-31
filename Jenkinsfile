@@ -38,7 +38,7 @@ pipeline {
           sh "docker tag \
               ${TKF_USER}/${CONTAINER_NAME}:amd64 \
               ${TKF_USER}/${CONTAINER_NAME}:latest"
-          sh "docker push ${IMAGE}:latest"
+          sh "docker push ${TKF_USER}/${CONTAINER_NAME}:latest"
         }
       }
     }
