@@ -7,7 +7,7 @@ pipeline {
     // Run SHellCheck
     stage('ShellCheck') {
       steps {
-        sh '''find "${WORKSPACE}/root" \
+        sh '''find "./root" \
                 -type f \
                 -exec docker run --rm -i -v "${WORKSPACE}/root:/mnt" \
                 koalaman/shellcheck:stable {} +'''
