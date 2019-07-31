@@ -9,7 +9,7 @@ pipeline {
       steps {
         sh '''find ./root \
                 -type f \
-                -exec docker run --rm -it -v ${WORKSPACE}/root:/mnt \
+                -exec docker run --rm -i -v ${WORKSPACE}/root:/mnt \
                 koalaman/shellcheck:stable {} +'''
       }
     }
