@@ -7,10 +7,7 @@ pipeline {
     // Run SHellCheck
     stage('ShellCheck') {
       steps {
-        sh '''find "./root" \
-                -type f \
-                -exec docker run --rm -i -v "${WORKSPACE}/root:/mnt" \
-                koalaman/shellcheck:stable {} +'''
+        sh '''echo "TODO: Determine a good strategy for finding and scanning shell code"'''
       }
     }
   }
