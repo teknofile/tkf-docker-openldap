@@ -39,6 +39,7 @@ pipeline {
               ${TKF_USER}/${CONTAINER_NAME}:amd64 \
               ${TKF_USER}/${CONTAINER_NAME}:latest"
           sh "docker push ${TKF_USER}/${CONTAINER_NAME}:latest"
+          sh "docker push ${TKF_USER}/${CONTAINER_NAME}:amd64"
         }
       }
     }
