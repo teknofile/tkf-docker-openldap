@@ -18,7 +18,7 @@ pipeline {
     }
     stage('Docker Build x86') {
       steps {
-        sh "docker build --no-cache --pull -t ${TKF_USER}/${CONTAINER_NAME}:amd64"
+        sh "docker build --no-cache --pull -t ${TKF_USER}/${CONTAINER_NAME}:amd64 ."
       }
     }
     stage('Docker Push x86') {
