@@ -35,7 +35,9 @@ pipeline {
           sh '''#! /bin/bash
             echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
             '''
-          sh "docker tag ${TKF_USER}/${CONTAINER_NAME} ${TKF_USER}/${CONTAINER_NAME}:latest"
+          sh "docker tag \
+              ${TKF_USER}/${CONTAINER_NAME}:amd64 \
+              ${TKF_USER}/${CONTAINER_NAME}:latest"
           sh "docker push ${IMAGE}:latest"
         }
       }
