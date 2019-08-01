@@ -58,7 +58,7 @@ pipeline {
                 docker run --rm=true \
                   -e DOCKERHUB_USERNAME=$DOCKERUSRE \
                   -e DOCKERHUB_PASSWORD=$DOCKERPASS \
-                  -e GET_REPOSITORY=${TKF_USER}/${CONTAINER_NAME} \
+                  -e GIT_REPOSITORY=${TKF_USER}/${CONTAINER_NAME} \
                   -e DOCKER_REPOSITORY=${CONTAINER_NAME} \
                   -e GIT_BRANCH=master \
                   lsiodev/readme-sync bash -c 'node sync' '''
