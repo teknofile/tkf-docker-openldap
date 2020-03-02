@@ -42,30 +42,5 @@ pipeline {
         }
       }
     }
-<<<<<<< HEAD
-=======
-    stage('Sync Readme') {
-      steps {
-        withCredentials([
-          [
-            $class: 'UsernamePasswordMultiBinding',
-            credentialsId: 'teknofile-docker-creds',
-            usernameVariable: 'DOCKERUSER',
-            passwordVariable: 'DOCKERPASS'
-          ]
-        ]) {
-          sh '''#! /bin/bash
-                docker pull lsiodev/readme-sync
-                docker run --rm=true \
-                  -e DOCKERHUB_USERNAME=$DOCKERUSRE \
-                  -e DOCKERHUB_PASSWORD=$DOCKERPASS \
-                  -e GIT_REPOSITORY=${TKF_USER}/${CONTAINER_NAME} \
-                  -e DOCKER_REPOSITORY=${CONTAINER_NAME} \
-                  -e GIT_BRANCH=master \
-                  lsiodev/readme-sync bash -c 'node sync' '''
-          }
-        }
-    }
->>>>>>> 09e86b6db1d414634ada31de9b2d865051340597
   }
 }
