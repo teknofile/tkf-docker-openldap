@@ -1,46 +1,84 @@
 pipeline {
   agent {
-    label 'X86-64-MULTI'
+    label 'X86_64'
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '60'))
+    parallelsAlwaysFailFast()
   }
 
   environment {
-    CONTAINER_NAME = 'tkf-docker-openldap'
     TKF_USER = 'teknofile'
+    TKF_REPO = 'tkf-docker-openldap'
+    DOCKERHUB_IMAGE = "${TKF_USER}" + "/" + "${TKF_REPO}"
   }
 
   stages {
-    // Run SHellCheck
-    stage('ShellCheck') {
-      steps {
-        sh '''echo "TODO: Determine a good strategy for finding and scanning shell code"'''
-      }
-    }
-    stage('Docker Build x86') {
+    stage('Docker Build amd64') {
       steps {
         sh "docker build --no-cache --pull -t ${TKF_USER}/${CONTAINER_NAME}:amd64 ."
-      }
-    }
-    stage('Docker Push x86') {
-      steps {
-        withCredentials([
-          [
-            $class: 'UsernamePasswordMultiBinding',
-            credentialsId: 'teknofile-docker-creds',
-            usernameVariable: 'DOCKERUSER',
-            passwordVariable: 'DOCKERPASS'
-          ]
-        ]) {
-          echo 'Logging into DockerHub'
-          sh '''#! /bin/bash
-            echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
+        git([url: 'https://github.com/${TKF_USER}/${TKF_REPO}.git', branch: 'main', credentialsId: 'teknofile-github-user-token'])
+        script {
+          withDockerRegistry(credentialsId: 'teknofile-dockerhub') {
+            sh '''
+              docker build --no-cache --pull -t ${DOCKERHUB_IMAGE}:amd64 .
+              docker push ${DOCKERHUB_IMAGE}:amd64
+              docker rmi ${DOCKERHUB_IMAGE}:amd64
             '''
-          sh "docker tag \
-              ${TKF_USER}/${CONTAINER_NAME}:amd64 \
-              ${TKF_USER}/${CONTAINER_NAME}:latest"
-          sh "docker push ${TKF_USER}/${CONTAINER_NAME}:latest"
-          sh "docker push ${TKF_USER}/${CONTAINER_NAME}:amd64"
+          }
         }
       }
+    }
+    stage('Build aarch64') {
+      agent {
+        label 'aarch64'
+      }
+      steps {
+        sh "docker build --no-cache --pull -t ${TKF_USER}/${CONTAINER_NAME}:aarch64 ."
+        git([url: 'https://github.com/${TKF_USER}/${TKF_REPO}.git', branch: 'main', credentialsId: 'teknofile-github-user-token'])
+        script {
+          withDockerRegistry(credentialsId: 'teknofile-dockerhub') {
+            sh '''
+              docker build --no-cache --pull -t ${DOCKERHUB_IMAGE}:aarch64 .
+              docker push ${DOCKERHUB_IMAGE}:aarch64
+              docker rmi ${DOCKERHUB_IMAGE}:aarch64
+            '''
+          }
+        }
+      }
+    }
+    stage('Create Manifest') {
+      agent {
+        label 'x86_64'
+      }
+      steps {
+        script {
+          withDockerRegistry(credentialsId: 'teknofile-dockerhub') {
+            sh '''
+              docker pull ${DOCKERHUB_IMAGE}:amd64
+              docker pull ${DOCKERHUB_IMAGE}:aarch64
+
+              docker manifest create ${DOCKERHUB_IMAGE} \
+                ${DOCKERHUB_IMAGE}:amd64 \
+                ${DOCKERHUB_IMAGE}:aarch64
+
+              docker manifest inspect ${DOCKERHUB_IMAGE}
+
+              docker manifest push ${DOCKERHUB_IMAGE}
+
+              docker rmi ${DOCKERHUB_IMAGE}:aarch64
+              docker rmi ${DOCKERHUB_IMAGE}:amd64
+            '''
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    cleanup {
+      cleanWs()
     }
   }
 }

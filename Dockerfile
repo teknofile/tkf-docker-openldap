@@ -1,4 +1,4 @@
-FROM lsiobase/alpine:3.10
+FROM teknofile/tkf-docker-base-alpine
 
 LABEL maintainer "teknofile <teknofile@teknofile.org>"
 
