@@ -44,6 +44,8 @@ Build the docker container. Some things to note below:
     -e LDAP_CA_CERT="fullchain.pem" \
     -e LDAP_CERT_KEY="privkey.pem" \
     -e LDAP_CERT="cert.pem" \
+    -e ORG_NAME="My Org Name" \
+    -e ORG_DN="dc=test,dc=teknofile,dc=net" \
     -p 389:389 \
     -p 636:636 \
     --network your-docker-net \
