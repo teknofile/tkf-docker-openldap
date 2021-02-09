@@ -14,6 +14,42 @@ This image is still in testing. I have released v0.1.0, as a beta quality releas
 
 To get started, [download the code](https://github.com/teknofile/tkf-docker-openldap/releases/tag/v0.1.0), build the container and run it. See below for an example method I use for building the container.
 
+### What exactly does the container do?
+
+When this container is launched, there is an init script run `(/etc/cont-init.d/50-openldap)`. First, t\his script:
+
+*Creates appropriate local directories used by the container*:
+- `/run/openldap` - This directory holds the pids for slapd, generic openldap stuff here
+- `/config/` - This directory (which should be mapped to the host or a docker volume) is the base persitance volume used by the container. It will hold SSL certs, ldif files, the slapd database and the like. One day, I'd like logs to be persisted here to (it's on the roadmap)
+- `${DATA_DIR}` - By default, this is set to `/config/data` and is the place where ldap specific database things are stored.
+- `${CONF_DIR}` - By default this is set to `/config/openldap` and is the place where specific openldap things are stored.
+- `${CONF_DIR}/certs` - This is where you can copy the SSL serts for TLS.
+- `${CONF_DIR}/ldif` - This is where ldif files can be stored
+
+*Checks to see if we are initializing a new LDAP structure*
+Next, the init script will check to see if `${CONFD_IR}/cn=config` exists. If it does, we want to use it. This is a cheap way of asking ourselves: "Has this container already been configured and setup?" We use the included, default, [slapd.ldif](https://github.com/teknofile/tkf-docker-openldap/blob/master/root/defaults/slapd.ldif) file for default configuration. 
+
+Most importantly, the init script does a string substution using enviornment variables that affect the creation of the slapd.ldif file by chaning: 
+
+| slapd config | env variable to substitute |
+| --- | --- |
+| olcSuffix | TKF_ORG_DN |
+| olcRootDN | cn=admin,TKF_ORG_DN |
+| olcRootPW | TKF_ROOTPW (dont pass this in) |
+| olcDbDirectory | TKF_DB_DIR |
+| olcTLSCACertificateFile | TKF_CA_CERT |
+| olcTLSCertificateFile | TKF_CERT | 
+| olcTLSCertificateKeyFile | TKF_CERT_KEY |
+
+During this time we also create a random 32 character generated password (if the ${CONF_DIR}{/ldap_root_pw} file does not exist). If it does exist, we simple read in that file and set the LDAP_ROOT_PW vairable to the slappasswd encrypted value of it. 
+
+Once all the string substitutions are done, we do a simple slapadd of the slapd.ldif file.
+
+*Configure the base org*
+After configuring `cn=config`, we configure a very basic orgnization root structure. There is also a default [org.ldif](https://github.com/teknofile/tkf-docker-openldap/blob/master/root/defaults/ldif/org.ldif) file that we use to create the base dn and the administrator dn. Similar to the slapd.ldif, this is done via string substiution of the init script. 
+
+
+
 ### Prerequisites
 
 Really all that should be needed is a recent version of Docker (I have been testing with Docker version 18.09.6).
