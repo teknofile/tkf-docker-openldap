@@ -44,7 +44,7 @@ function ldapRestore {
   # Now we can restore the 'data'
   
   # "Backup" the actual mdb data files because, idk, just in case and stuff
-  if [ -d ${DATA} ];
+  if [ -d ${DATA_DIR} ];
     echo "***** Backing up the data dir ${DATRA_DIR}"
     mv ${DATA_DIR} ${DATA_DIR}.`date +%Y-%m-%d_%H%M%S`
   fi
@@ -127,14 +127,14 @@ function ldapInitialize {
 }
 
 # We actually have two files we check for .. but /shrug
-if [ -f "${CONF_DIR}/ldif/config.ldif" ]
+if [ -f ${CONF_DIR}/ldif/config.ldif ]
 then
   # If we have restore data, restore it and go along our merry way
   # We don't worry about admin pw's, or anything - it's all in the restore files.
   ldapRestore
 else
   # if we don't have an existing config, we need to create it
-  if [ ! -d "${CONF_DIR}/slapd.d/cn=config" ]; then
+  if [ ! -d ${CONF_DIR}/slapd.d/cn=config ]; then
     ldapInitialize
   else 
     # We are here, if we already have a directory and we aren't restoring from a backup
