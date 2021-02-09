@@ -31,20 +31,39 @@ function ldapRestore {
   # We are going to do the restore using slapadd.  
 
   # If there is an existing directory in it's place, let's move it
-  mv ${CONF_DIR}/slapd.d ${CONF_DIR}/slapd.d.`date +%Y-%m-%d_%H%M%S`
+  if [ -d ${CONF_DIR}/slapd.d ];
+    echo "***** Backing up existing slapd.d directory"
+    mv ${CONF_DIR}/slapd.d ${CONF_DIR}/slapd.d.`date +%Y-%m-%d_%H%M%S`
+  fi
   mkdir -p ${CONF_DIR}/slapd.d
 
+  echo "***** Restoring the config.ldif data"
   /usr/sbin/slapadd -n 0 -F ${CONF_DIR}/slapd.d -l ${CONF_DIR}/ldif/config.ldif
   chown -R abc:abc ${CONF_DIR}/slapd.d 
 
   # Now we can restore the 'data'
   
   # "Backup" the actual mdb data files because, idk, just in case and stuff
-  mv ${DATA_DIR} ${DATA_DIR}.`date +%Y-%m-%d_%H%M%S`
-  mkdir ${DATA_DIR}
+  if [ -d ${DATA} ];
+    echo "***** Backing up the data dir ${DATRA_DIR}"
+    mv ${DATA_DIR} ${DATA_DIR}.`date +%Y-%m-%d_%H%M%S`
+  fi
+  mkdir -p ${DATA_DIR}
 
+  echo "***** Adding the data.ldif"
   /usr/sbin/slapadd -n 1 -F ${CONF_DIR}/slapd.d -l ${CONF_DIR}/ldif/data.ldif -w
   chown -R abc:abc ${DATA_DIR}
+
+
+  # TODO: Add way more testing to make sure everything was successful
+  
+  # In order of us to not try to restore next time the 
+  # container starts, let's move the restore files out 
+  # of the way
+  #
+ 
+  mv ${CONF_DIR}/ldif/config.ldif ${COFN_DIR}/ldif/config.ldif.`date +%Y-%m-%d_%H%M%S`
+  mv ${CONF_DIR}/ldif/data.ldif ${COFN_DIR}/ldif/data.ldif.`date +%Y-%m-%d_%H%M%S`
 }
 
 function ldapInitialize {
@@ -58,12 +77,14 @@ function ldapInitialize {
   SLAPD_CONF="${CONF_DIR}/slapd.ldif"
   ORG_CONF="${CONF_DIR}/org.ldif"
 
+  echo "***** Copying over default slapd.ldif and org.ldif files"
   cp -a /defaults/ldif/slapd.ldif ${SLAPD_CONF}
   cp -a /defaults/ldif/org.ldif ${ORG_CONF}
 
   # We are going to generate a random password
   # And store it on the fs
   if [ ! -f ${CONF_DIR}/ldap_root_pw ]; then
+    echo "***** Generating a new password for the LDAP administrator"
     GENERATED_PW="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32| head -n 1)"
     echo ${GENERATED_PW} > ${CONF_DIR}/ldap_root_pw
   fi
@@ -73,6 +94,7 @@ function ldapInitialize {
   LDAP_PW=$(cat ${CONF_DIR}/ldap_root_pw)
   LDAP_ROOT_PW="$(/usr/sbin/slappasswd -s $(cat ${CONF_DIR}/ldap_root_pw))"
 
+  echo "***** Performing configuration substiution"
   # Now let's go ahead and search/replace the default slapd.ldif
   # file with parameters from the contianers enviornment
   sed -i "s~%TKF_ROOTPW%~${LDAP_ROOT_PW}~g" ${SLAPD_CONF}
@@ -84,37 +106,36 @@ function ldapInitialize {
   sed -i "s~%TKF_CERT%~/config/certs/${LDAP_CERT}~g" ${SLAPD_CONF}
   sed -i "s~%TKF_CERT_KEY%~/config/certs/${LDAP_CERT_KEY}~g" ${SLAPD_CONF}
   
-  #initialize the DB 
+  #initialize the DB
+  echo "***** Applying initial slapd.ldif configuration"
   /usr/sbin/slapadd -d trace -n 0 -F ${CONF_DIR}/slapd.d -l ${SLAPD_CONF} > ${CONF_DIR}/slapd.log 2>&1
   rm -f ${SLAPD_CONF}
+  
 
+  echo "***** Configuring the initial organization root"
   # Now we need to setup the base organizationalUnit for the ldap tree
   sed -i "s~%TKF_ORG_DN%~${ORG_DN}~g" ${ORG_CONF}
   sed -i "s~%TKF_ORG_NAME%~${ORG_NAME}~g" ${ORG_CONF}
   # TODO expose domain name as a env var or compute it
 
   LDAP_DOMAIN=`echo ${ORG_DN} | awk -F, '{print $1}' | awk -F= '{print $2}'`
+  echo "***** Setting the LDAP_DOMAIN: ${LDAP_DOMAIN}"
   sed -i "s~%LDAP_DOMAIN%~${LDAP_DOMAIN}~g" ${ORG_CONF}
 
-  # we have to (temporarily start up the server to do the base add)
-  /usr/sbin/slapd -F ${CONF_DIR}
-  /usr/bin/ldapadd -f ${ORG_CONF} -x -D cn=admin,${ORG_DN} -w ${LDAP_PW}
-  # We probably could have used slapadd without having to start the system??
-  rm -f ${ORG_CONF}
-
-  # Now we kill it off, because we'll start it via s6 later
-  kill `pidof slapd`
+  echo "**** Applying the initial configuration"
+  /usr/sbin/slapadd -n 1 -F ${CONF_DIR}/slapd.d -l ${ORG_CONF}
 }
 
-if [ -f ${CONF_DIR}/ldif/*.ldif ]
+# We actually have two files we check for .. but /shrug
+if [ -f "${CONF_DIR}/ldif/config.ldif" ]
 then
   # If we have restore data, restore it and go along our merry way
   # We don't worry about admin pw's, or anything - it's all in the restore files.
-  ldapRestore()
+  ldapRestore
 else
   # if we don't have an existing config, we need to create it
-  if [ ! -d ${CONF_DIR}/slapd.d/cn=config ]; then
-    ldapInitialize()
+  if [ ! -d "${CONF_DIR}/slapd.d/cn=config" ]; then
+    ldapInitialize
   else 
     # We are here, if we already have a directory and we aren't restoring from a backup
     # Let's check to seee if we have a password file stilla round, and let someone know 

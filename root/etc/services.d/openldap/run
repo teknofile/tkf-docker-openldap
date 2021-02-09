@@ -4,4 +4,4 @@
 
 ulimit -n 1024
 
-exec s6-setuidgid root /usr/sbin/slapd -u abc -g abc -d trace -F /config/openldap/ -h "ldap:/// ldaps:///"
+exec s6-setuidgid root /usr/sbin/slapd -u abc -g abc -d stats -F /config/openldap/slapd.d -h "ldap:/// ldaps:///"
