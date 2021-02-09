@@ -6,9 +6,9 @@ LABEL maintainer "teknofile <teknofile@teknofile.org>"
 #ENV ORG_DN "dc=copperdale,dc=teknofile,dc=net"
 #ENV ACCESS_CONTROL "access to * by * read"
 
-ENV ORG_NAME
-ENV ORG_DN
-ENV ACCESS_CONTROL "access to * by * read"
+#ENV ORG_NAME
+#ENV ORG_DN
+#ENV ACCESS_CONTROL "access to * by * read"
 
 
 RUN apk --no-cache add \
