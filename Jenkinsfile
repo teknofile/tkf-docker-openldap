@@ -18,7 +18,7 @@ pipeline {
     stage('Docker Build amd64') {
       steps {
         sh "docker build --no-cache --pull -t ${TKF_USER}/${CONTAINER_NAME}:amd64 ."
-        git([url: 'https://github.com/${TKF_USER}/${TKF_REPO}.git', branch: 'main', credentialsId: 'teknofile-github-user-token'])
+        git([url: 'https://github.com/${TKF_USER}/${TKF_REPO}.git', branch: 'master', credentialsId: 'teknofile-github-user-token'])
         script {
           withDockerRegistry(credentialsId: 'teknofile-dockerhub') {
             sh '''
@@ -36,7 +36,7 @@ pipeline {
       }
       steps {
         sh "docker build --no-cache --pull -t ${TKF_USER}/${CONTAINER_NAME}:aarch64 ."
-        git([url: 'https://github.com/${TKF_USER}/${TKF_REPO}.git', branch: 'main', credentialsId: 'teknofile-github-user-token'])
+        git([url: 'https://github.com/${TKF_USER}/${TKF_REPO}.git', branch: 'master', credentialsId: 'teknofile-github-user-token'])
         script {
           withDockerRegistry(credentialsId: 'teknofile-dockerhub') {
             sh '''
