@@ -19,10 +19,10 @@ mkdir -p \
   ${CONF_DIR}/slapd.d
 
 function ldapRestore { 
-
   echo "**** Performing an ldapRestore"
   # If we have any ldif files in /config/ldif/*ldif we should do a 'restore'
-  # It is an exercise for the reader/user to make sure any paths that may be referenced in those backups are appropriate
+  # It is an exercise for the reader/user to make sure any paths that 
+  # may be referenced in those backups are appropriate
   # 
   # A restore is done in two parts, both with slapd not running.
   # First we need to restore the configuration sections (cn=config), then
@@ -32,9 +32,11 @@ function ldapRestore {
 
   # If there is an existing directory in it's place, let's move it
   if [ -d ${CONF_DIR}/slapd.d ];
+  then
     echo "***** Backing up existing slapd.d directory"
     mv ${CONF_DIR}/slapd.d ${CONF_DIR}/slapd.d.`date +%Y-%m-%d_%H%M%S`
   fi
+
   mkdir -p ${CONF_DIR}/slapd.d
 
   echo "***** Restoring the config.ldif data"
@@ -45,6 +47,7 @@ function ldapRestore {
   
   # "Backup" the actual mdb data files because, idk, just in case and stuff
   if [ -d ${DATA_DIR} ];
+  then
     echo "***** Backing up the data dir ${DATRA_DIR}"
     mv ${DATA_DIR} ${DATA_DIR}.`date +%Y-%m-%d_%H%M%S`
   fi
