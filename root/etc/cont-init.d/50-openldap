@@ -65,8 +65,8 @@ function ldapRestore {
   # of the way
   #
  
-  mv ${CONF_DIR}/ldif/config.ldif ${COFN_DIR}/ldif/config.ldif.`date +%Y-%m-%d_%H%M%S`
-  mv ${CONF_DIR}/ldif/data.ldif ${COFN_DIR}/ldif/data.ldif.`date +%Y-%m-%d_%H%M%S`
+  mv ${CONF_DIR}/ldif/config.ldif ${CONF_DIR}/ldif/config.ldif.`date +%Y-%m-%d_%H%M%S`
+  mv ${CONF_DIR}/ldif/data.ldif ${CONF_DIR}/ldif/data.ldif.`date +%Y-%m-%d_%H%M%S`
 }
 
 function ldapInitialize {
