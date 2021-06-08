@@ -59,9 +59,11 @@ pipeline {
               docker pull ${DOCKERHUB_IMAGE}:amd64
               docker pull ${DOCKERHUB_IMAGE}:aarch64
 
-              docker manifest create ${DOCKERHUB_IMAGE} \
-                ${DOCKERHUB_IMAGE}:amd64 \
-                ${DOCKERHUB_IMAGE}:aarch64
+              // docker manifest create ${DOCKERHUB_IMAGE} \
+              //  ${DOCKERHUB_IMAGE}:amd64 \
+              //  ${DOCKERHUB_IMAGE}:aarch64
+
+              docker manifest create ${DOCKERHUB_IMAGE} ${DOCKERHUB_IMAGE}:amd64
 
               docker manifest inspect ${DOCKERHUB_IMAGE}
 
