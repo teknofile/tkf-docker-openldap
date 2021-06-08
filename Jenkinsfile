@@ -29,6 +29,7 @@ pipeline {
         }
       }
     }
+/*
     stage('Build aarch64') {
       agent {
         label 'aarch64'
@@ -46,6 +47,7 @@ pipeline {
         }
       }
     }
+*/
     stage('Create Manifest') {
       agent {
         label 'x86_64'
